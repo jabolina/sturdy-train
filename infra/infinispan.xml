@@ -1,0 +1,58 @@
+<!--
+  Server configuration for the resiliency benchmark harness.
+
+  Uses TCPPING for deterministic discovery (no multicast issues in Docker).
+  No server-side cache definitions: the client creates caches via Hot Rod
+  admin API so the cache configuration is parameterized per scenario.
+
+  metrics-auth="false" allows Prometheus to scrape /metrics without
+  digest authentication.
+-->
+<infinispan
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="urn:infinispan:config:16.0 https://infinispan.org/schemas/infinispan-config-16.0.xsd
+                            urn:infinispan:server:16.0 https://infinispan.org/schemas/infinispan-server-16.0.xsd"
+      xmlns="urn:infinispan:config:16.0"
+      xmlns:server="urn:infinispan:server:16.0">
+
+   <jgroups>
+      <stack name="resiliency-tcp" extends="tcp">
+         <TCPPING initial_hosts="ispn-1[7800],ispn-2[7800],ispn-3[7800],ispn-4[7800],ispn-5[7800]"
+                  port_range="0"
+                  stack.combine="REPLACE"
+                  stack.position="MPING"/>
+      </stack>
+   </jgroups>
+
+   <cache-container name="default" statistics="true">
+      <metrics gauges="true" histograms="true"/>
+      <transport cluster="resiliency" stack="resiliency-tcp"
+                 node-name="${infinispan.node.name:}"/>
+   </cache-container>
+
+   <server xmlns="urn:infinispan:server:16.0">
+      <interfaces>
+         <interface name="public">
+            <inet-address value="${infinispan.bind.address:0.0.0.0}"/>
+         </interface>
+      </interfaces>
+
+      <socket-bindings default-interface="public"
+                       port-offset="${infinispan.socket.binding.port-offset:0}">
+         <socket-binding name="default"
+                         port="${infinispan.bind.port:11222}"/>
+      </socket-bindings>
+
+      <security>
+         <security-realms>
+            <security-realm name="default">
+               <properties-realm/>
+            </security-realm>
+         </security-realms>
+      </security>
+
+      <endpoints socket-binding="default" security-realm="default">
+         <endpoint metrics-auth="false"/>
+      </endpoints>
+   </server>
+</infinispan>

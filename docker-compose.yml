@@ -1,0 +1,181 @@
+# 5-node Infinispan cluster + Prometheus + Grafana for resiliency benchmarking.
+#
+# Override the server image with ISPN_IMAGE:
+#   ISPN_IMAGE=local/server:fix docker compose up -d
+#
+# Usage:
+#   docker compose up -d              -- start cluster + monitoring
+#   docker compose stop ispn-1        -- kill coordinator (fault injection)
+#   docker compose logs -f            -- tail all logs
+#   docker compose down -v            -- tear down
+
+services:
+  ispn-1:
+    image: ${ISPN_IMAGE:-infinispan/server:16.2}
+    container_name: ispn-1
+    hostname: ispn-1
+    ports:
+      - "11222:11222"
+    environment:
+      USER: admin
+      PASS: password
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+    cap_add:
+      - NET_ADMIN
+      - SYS_PTRACE
+    networks:
+      cluster:
+        ipv4_address: 172.18.10.11
+    volumes:
+      - ./infra/infinispan.xml:/opt/infinispan/server/conf/infinispan.xml
+      - ./infra/log4j2.xml:/opt/infinispan/server/conf/log4j2.xml
+      - ./logs/ispn-1:/opt/infinispan/server/log
+    command: -c infinispan.xml --node-name=ispn-1
+
+  ispn-2:
+    image: ${ISPN_IMAGE:-infinispan/server:16.2}
+    container_name: ispn-2
+    hostname: ispn-2
+    ports:
+      - "11322:11222"
+    environment:
+      USER: admin
+      PASS: password
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+    cap_add:
+      - NET_ADMIN
+      - SYS_PTRACE
+    networks:
+      cluster:
+        ipv4_address: 172.18.10.12
+    volumes:
+      - ./infra/infinispan.xml:/opt/infinispan/server/conf/infinispan.xml
+      - ./infra/log4j2.xml:/opt/infinispan/server/conf/log4j2.xml
+      - ./logs/ispn-2:/opt/infinispan/server/log
+    command: -c infinispan.xml --node-name=ispn-2
+
+  ispn-3:
+    image: ${ISPN_IMAGE:-infinispan/server:16.2}
+    container_name: ispn-3
+    hostname: ispn-3
+    ports:
+      - "11422:11222"
+    environment:
+      USER: admin
+      PASS: password
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+    cap_add:
+      - NET_ADMIN
+      - SYS_PTRACE
+    networks:
+      cluster:
+        ipv4_address: 172.18.10.13
+    volumes:
+      - ./infra/infinispan.xml:/opt/infinispan/server/conf/infinispan.xml
+      - ./infra/log4j2.xml:/opt/infinispan/server/conf/log4j2.xml
+      - ./logs/ispn-3:/opt/infinispan/server/log
+    command: -c infinispan.xml --node-name=ispn-3
+
+  ispn-4:
+    image: ${ISPN_IMAGE:-infinispan/server:16.2}
+    container_name: ispn-4
+    hostname: ispn-4
+    ports:
+      - "11522:11222"
+    environment:
+      USER: admin
+      PASS: password
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+    cap_add:
+      - NET_ADMIN
+      - SYS_PTRACE
+    networks:
+      cluster:
+        ipv4_address: 172.18.10.14
+    volumes:
+      - ./infra/infinispan.xml:/opt/infinispan/server/conf/infinispan.xml
+      - ./infra/log4j2.xml:/opt/infinispan/server/conf/log4j2.xml
+      - ./logs/ispn-4:/opt/infinispan/server/log
+    command: -c infinispan.xml --node-name=ispn-4
+
+  ispn-5:
+    image: ${ISPN_IMAGE:-infinispan/server:16.2}
+    container_name: ispn-5
+    hostname: ispn-5
+    ports:
+      - "11622:11222"
+    environment:
+      USER: admin
+      PASS: password
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+    cap_add:
+      - NET_ADMIN
+      - SYS_PTRACE
+    networks:
+      cluster:
+        ipv4_address: 172.18.10.15
+    volumes:
+      - ./infra/infinispan.xml:/opt/infinispan/server/conf/infinispan.xml
+      - ./infra/log4j2.xml:/opt/infinispan/server/conf/log4j2.xml
+      - ./logs/ispn-5:/opt/infinispan/server/log
+    command: -c infinispan.xml --node-name=ispn-5
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    hostname: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      cluster:
+        ipv4_address: 172.18.10.100
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    hostname: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      cluster:
+        ipv4_address: 172.18.10.101
+
+networks:
+  cluster:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.10.0/24

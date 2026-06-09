@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: "infinispan"
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "ispn-1:11222"
+          - "ispn-2:11222"
+          - "ispn-3:11222"
+          - "ispn-4:11222"
+          - "ispn-5:11222"

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration shutdownHook="disable">
+    <appenders>
+        <Console name="STDOUT" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="%-7d{HH:mm:ss,SSS} [%p] [%t] (%c{1.}): %m%n"/>
+        </Console>
+        <File name="FILE" fileName="logs/driver/hotrod-client.log" append="false">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} [%p] [%t] (%c{1.}): %m%n"/>
+        </File>
+    </appenders>
+    <loggers>
+        <root level="info">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="FILE"/>
+        </root>
+
+        <logger name="org.jgroups" level="warn"/>
+        <logger name="org.infinispan" level="info"/>
+        <logger name="org.jgroups.protocols.UNICAST3" level="warn"/>
+    </loggers>
+</configuration>
