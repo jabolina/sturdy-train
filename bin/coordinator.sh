@@ -29,7 +29,7 @@ ACTION="$1"; shift
 
 parse_view() {
     local view_line
-    view_line=$(grep 'ISPN000094' "$PROJECT_DIR"/logs/ispn-*/server.log \
+    view_line=$(grep -h 'ISPN000094' "$PROJECT_DIR"/logs/ispn-*/server.log* \
         | sort -t',' -k2 \
         | tail -1 \
         || true)

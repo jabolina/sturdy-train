@@ -199,9 +199,93 @@
       ]
     },
     {
-      "title": "JGroups Flow Control Blockings (per node)",
+      "title": "Avg Lock Wait Time (per node)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" },
+          "unit": "ns"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "infinispan_lock_manager_average_wait_time_nanos",
+          "legendFormat": "{{node}} / {{cache}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Avg Lock Hold Time (per node)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" },
+          "unit": "ns"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "infinispan_lock_manager_average_hold_time_nanos",
+          "legendFormat": "{{node}} / {{cache}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Lock Timeouts (per node)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 48 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "infinispan_lock_manager_timeout_count",
+          "legendFormat": "{{node}} / {{cache}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Lock Rejections (per node)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 48 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "infinispan_lock_manager_rejection_count",
+          "legendFormat": "{{node}} / {{cache}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "JGroups Flow Control Blockings (per node)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 56 },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -228,7 +312,7 @@
     {
       "title": "Netty I/O Pending Tasks (per node)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 56 },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },

@@ -63,7 +63,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # --- Java Execution ---
-FLAGS="$JAVA_OPTS -XX:-RestrictContended --add-exports java.base/jdk.internal.vm.annotation=ALL-UNNAMED -Xmx8g -Dorg.infinispan.threads.virtual=true"
+FLAGS="$JAVA_OPTS -XX:-RestrictContended --add-exports java.base/jdk.internal.vm.annotation=ALL-UNNAMED -Xmx4g -Dorg.infinispan.threads.virtual=true"
 # DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=*:8787"
 # Note: $DEBUG is commented out in your original script, but included for completeness.
 

@@ -13,20 +13,20 @@ Usage: $(basename "$0") <start|stop|status> [options]
 
 Actions:
   start   --path <async-profiler-dir> [-- asprof start options]
-  stop    [-- asprof stop options]
+  stop    [--format <html|jfr|collapsed>] [-- asprof stop options]
   status
 
 The --path flag is required on 'start' and points to the local async-profiler directory.
 Options after -- are forwarded to asprof for the respective action.
 
 Start defaults: -e cpu
-Stop defaults:  -o html -f /opt/infinispan/server/log/profile.html
+Stop defaults:  --format html
 
 Examples:
   $(basename "$0") start --path /home/user/async-profiler
   $(basename "$0") start --path /home/user/async-profiler -- -e wall --all
   $(basename "$0") stop
-  $(basename "$0") stop -- -o jfr
+  $(basename "$0") stop --format jfr
 EOF
     exit 1
 }
@@ -106,32 +106,15 @@ do_start() {
 }
 
 do_stop() {
+    local ext="html"
     local extra_args=()
     while [ $# -gt 0 ]; do
         case "$1" in
+            --format) ext="$2"; shift 2 ;;
             --) shift; extra_args=("$@"); break ;;
-            *) echo "Error: unknown option '$1'. Use -- to separate asprof options."; usage ;;
+            *) echo "Error: unknown option '$1'."; usage ;;
         esac
     done
-
-    local has_output=false
-    local has_file=false
-    for arg in "${extra_args[@]}"; do
-        case "$arg" in
-            -o) has_output=true ;;
-            -f) has_file=true ;;
-        esac
-    done
-
-    local ext="html"
-    if [ "$has_output" = true ]; then
-        for ((i=0; i<${#extra_args[@]}; i++)); do
-            if [ "${extra_args[$i]}" = "-o" ] && [ $((i+1)) -lt ${#extra_args[@]} ]; then
-                ext="${extra_args[$((i+1))]}"
-                break
-            fi
-        done
-    fi
 
     for container in $CONTAINERS; do
         echo "[$container]"
@@ -148,16 +131,9 @@ do_stop() {
             continue
         fi
 
-        local args=()
-        if [ "$has_output" = false ]; then
-            args+=(-o html)
-        fi
-        args+=("${extra_args[@]}")
-
         local output_file="/opt/infinispan/server/log/profile.${ext}"
-        if [ "$has_file" = false ]; then
-            args+=(-f "$output_file")
-        fi
+        local args=(-f "$output_file")
+        args+=("${extra_args[@]}")
 
         echo "  Stopping profiler on PID $pid..."
         docker exec "$container" "$PROFILER_DIR/bin/asprof" stop "${args[@]}" "$pid"

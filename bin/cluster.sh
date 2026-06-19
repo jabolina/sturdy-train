@@ -75,7 +75,7 @@ ${env_block}
     deploy:
       resources:
         limits:
-          cpus: "1.0"
+          cpus: "2.0"
           memory: 1024M
     cap_add:
       - NET_ADMIN

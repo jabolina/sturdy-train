@@ -46,11 +46,16 @@ clean_heap() {
     find "$LOGS_DIR" -type f \( -name '*.hprof' \) -print -delete
 }
 
+clean_thread_dumps() {
+    echo "Cleaning thread dumps..."
+    find "$LOGS_DIR" -type f -name 'thread-dump-*' -print -delete
+}
+
 case "$ACTION" in
     logs)    clean_logs ;;
     reports) clean_reports ;;
     jfr)     clean_jfr ;;
-    all)     clean_logs; clean_reports; clean_jfr; clean_heap ;;
+    all)     clean_logs; clean_reports; clean_jfr; clean_heap; clean_thread_dumps ;;
     -h|--help) usage ;;
     *)       echo "Error: unknown action '$ACTION'"; usage ;;
 esac

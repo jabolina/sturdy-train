@@ -161,7 +161,7 @@ final class DefaultLoadDriver implements LoadDriver {
       private TicketState() {
          this.onOperationDone = (r, t) -> {
             if (t != null) {
-               LOG.error("Failed submitting cache write", t);
+               LOG.debug("Failed submitting cache write", t);
                isError = 1;
             }
 
