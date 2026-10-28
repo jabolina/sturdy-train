@@ -3,14 +3,15 @@ package org.infinispan.driver;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiConsumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.infinispan.distribution.KeyDistribution;
 import org.infinispan.client.hotrod.RemoteCache;
+import org.infinispan.distribution.KeyDistribution;
 import org.infinispan.jfr.CacheOperationEvent;
 
 import jdk.internal.vm.annotation.Contended;
@@ -27,6 +28,7 @@ final class DefaultLoadDriver implements LoadDriver {
    private final KeyDistribution distribution;
    private final RemoteCache<Integer, String> cache;
    private final String payload;
+   private final double readRatio;
 
    private final int mask;
    private final int depth;
@@ -40,9 +42,10 @@ final class DefaultLoadDriver implements LoadDriver {
    private long operations;
    private long errors;
 
-   public DefaultLoadDriver(RemoteCache<Integer, String> cache, KeyDistribution distribution, int valueSize, int concurrency) {
+   public DefaultLoadDriver(RemoteCache<Integer, String> cache, KeyDistribution distribution, int valueSize, int concurrency, double readRatio) {
       this.distribution = distribution;
       this.cache = cache;
+      this.readRatio = readRatio;
 
       int powerOfTwo = 1;
       while (powerOfTwo < concurrency) {
@@ -87,12 +90,17 @@ final class DefaultLoadDriver implements LoadDriver {
          Integer key = distribution.key();
          TicketState state = states[ticket];
 
+         boolean isRead = ThreadLocalRandom.current().nextDouble() < readRatio;
          CompletableFuture.runAsync(() -> {
                   if (state.event != null) {
                      state.event.key = key;
                      state.event.begin();
                   }
-                  cache.put(key, payload);
+                  if (isRead) {
+                     cache.get(key);
+                  } else {
+                     cache.put(key, payload);
+                  }
                }, Executors.newVirtualThreadPerTaskExecutor()).whenComplete(state.onOperationDone);
       }
 

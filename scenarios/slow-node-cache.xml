@@ -1,0 +1,4 @@
+<distributed-cache name="slow-node-cache" statistics="true">
+  <encoding media-type="application/x-protostream"/>
+  <locking acquire-timeout="10000"/>
+</distributed-cache>

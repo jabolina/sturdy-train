@@ -44,6 +44,8 @@ clean_jfr() {
 clean_heap() {
     echo "Cleaning heap dumps..."
     find "$LOGS_DIR" -type f \( -name '*.hprof' \) -print -delete
+    find "$LOGS_DIR" -type f \( -name 'heap-dump-*' \) -print -delete
+    find "$LOGS_DIR" -type d \( -name 'heap-dump-*' \) -exec rm -r '{}' \;
 }
 
 clean_thread_dumps() {

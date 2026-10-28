@@ -241,42 +241,42 @@
       ]
     },
     {
-      "title": "Lock Timeouts (per node)",
+      "title": "Lock Timeouts (rate/s per node)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 48 },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
           "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" },
-          "unit": "short"
+          "unit": "ops"
         },
         "overrides": []
       },
       "targets": [
         {
           "datasource": { "type": "prometheus" },
-          "expr": "infinispan_lock_manager_timeout_count",
+          "expr": "rate(infinispan_lock_manager_timeout_count[30s])",
           "legendFormat": "{{node}} / {{cache}}",
           "refId": "A"
         }
       ]
     },
     {
-      "title": "Lock Rejections (per node)",
+      "title": "Lock Rejections (rate/s per node)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 48 },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
           "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" },
-          "unit": "short"
+          "unit": "ops"
         },
         "overrides": []
       },
       "targets": [
         {
           "datasource": { "type": "prometheus" },
-          "expr": "infinispan_lock_manager_rejection_count",
+          "expr": "rate(infinispan_lock_manager_rejection_count[30s])",
           "legendFormat": "{{node}} / {{cache}}",
           "refId": "A"
         }

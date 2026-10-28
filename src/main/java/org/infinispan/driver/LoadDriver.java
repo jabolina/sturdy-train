@@ -2,8 +2,8 @@ package org.infinispan.driver;
 
 import java.util.concurrent.TimeUnit;
 
-import org.infinispan.distribution.KeyDistribution;
 import org.infinispan.client.hotrod.RemoteCache;
+import org.infinispan.distribution.KeyDistribution;
 
 public interface LoadDriver extends Runnable {
 
@@ -23,6 +23,7 @@ public interface LoadDriver extends Runnable {
       private int valueSize;
       private int concurrency;
       private double rate;
+      private double readRatio;
 
       public Builder withCache(RemoteCache<Integer, String> cache) {
          this.cache = cache;
@@ -49,12 +50,17 @@ public interface LoadDriver extends Runnable {
          return this;
       }
 
-      public LoadDriver throughput() {
-         return new DefaultLoadDriver(cache, distribution, valueSize, concurrency);
+      public Builder withReadRatio(double readRatio) {
+         this.readRatio = readRatio;
+         return this;
       }
 
-      public LoadDriver uniform() {
-         return new UniformLoadDriver(cache, distribution, valueSize, rate);
+      public LoadDriver throughput() {
+         return new DefaultLoadDriver(cache, distribution, valueSize, concurrency, readRatio);
+      }
+
+      public LoadDriver uniform(boolean throttling) {
+         return new UniformLoadDriver(cache, distribution, valueSize, rate, readRatio, throttling);
       }
    }
 }

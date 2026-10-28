@@ -38,6 +38,9 @@
       <AppenderRef ref="FILE"/>
     </Root>
 
+    <!-- Fail-fast lock rejections: hold estimate, queue length and timeout at each rejection -->
+    <Logger name="org.infinispan.util.concurrent.locks.impl.InfinispanLock" level="DEBUG"/>
+
     <!-- Conflict resolution: ISPN100012 when starting per-cache conflict resolution -->
 <!--    <Logger name="org.infinispan.conflict" level="DEBUG"/>-->
 
@@ -68,11 +71,38 @@
 <!--    <Logger name="org.infinispan.interceptors.locking.PessimisticLockingInterceptor" level="TRACE"/>-->
 <!--    <Logger name="org.infinispan.statetransfer.StateTransferInterceptor" level="TRACE"/>-->
 
+<!--    <Logger name="org.infinispan.interceptors.impl.InvocationContextInterceptor" level="OFF"/>-->
+<!--    <Logger name="org.infinispan.interceptors.impl.AsyncInterceptorChainImpl" level="OFF"/>-->
+<!--    <Logger name="org.infinispan.CLUSTER" level="OFF"/>-->
+<!--    <Logger name="org.infinispan.SERVER" level="INFO">-->
+<!--      <BurstFilter level="WARN" rate="10" maxBurst="100"/>-->
+<!--    </Logger>-->
+
+<!--    <Logger name="org.infinispan.interceptors.impl.AsyncInterceptorChainImpl" level="ERROR">-->
+<!--      <Filters>-->
+<!--        <BurstFilter level="ERROR" rate="20" maxBurst="50"/>-->
+<!--      </Filters>-->
+<!--    </Logger>-->
+
+<!--    <Logger name="org.infinispan.CLUSTER" level="WARN">-->
+<!--      <Filters>-->
+<!--        <BurstFilter level="WARN" rate="20" maxBurst="50"/>-->
+<!--      </Filters>-->
+<!--    </Logger>-->
+
+    <Logger name="org.infinispan.FREQUENT">
+      <Filters>
+        <BurstFilter level="ERROR" rate="20" maxBurst="50"/>
+      </Filters>
+    </Logger>
+
     <Logger name="org.infinispan" level="INFO"/>
 
     <Logger name="com.arjuna" level="WARN"/>
     <Logger name="org.jboss.threads" level="WARN"/>
     <Logger name="io.netty.handler.ssl.ApplicationProtocolNegotiationHandler" level="ERROR"/>
+
+    <Logger name="org.infinispan.remoting.transport.jgroups.BaseJGroupsMetricManager" level="DEBUG"/>
 
     <Logger name="org.infinispan.AUDIT" additivity="false" level="ERROR">
       <AppenderRef ref="AUDIT-FILE"/>

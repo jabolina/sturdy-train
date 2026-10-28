@@ -15,8 +15,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
+import org.infinispan.client.hotrod.configuration.ClientIntelligence;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.commons.configuration.StringConfiguration;
+import org.infinispan.commons.util.Version;
 import org.infinispan.distribution.KeyDistribution;
 import org.infinispan.driver.LoadDriver;
 
@@ -61,8 +63,16 @@ public class Main implements Runnable {
          description = "Key distribution pattern: uniform or zipfian. (default: ${DEFAULT-VALUE})", defaultValue = "uniform")
    private Distribution distribution;
 
+   @Option(names = "--read-ratio",
+         description = "Fraction of operations that are reads, 0.0 to 1.0. (default: ${DEFAULT-VALUE})",
+         defaultValue = "0.0")
+   private double readRatio;
+
    @Option(names = "--duration", description = "Duration of the execution, e.g., PT1M, PT30S. (default is unbounded)")
    private Duration duration;
+
+   @Option(names = "--throttle", description = "Whether to throttle the load driver", defaultValue = "false")
+   private boolean throttling;
 
    enum Distribution {
       UNIFORM,
@@ -78,6 +88,7 @@ public class Main implements Runnable {
 
    @Override
    public void run() {
+      LOG.info("Utilising version: {}", Version.printVersion());
       LOG.info("Connecting to servers {} with configuration {}", servers, cacheConfiguration);
 
       try (RemoteCacheManager rcm = createCacheManager(); ExecutorService executor = Executors.newSingleThreadExecutor()) {
@@ -93,7 +104,11 @@ public class Main implements Runnable {
             handleStop(driver, startTime);
          }));
 
-         LOG.info("Starting the driver with {} threads and {} keys", threads, keys);
+         if (rate <= 0) {
+            LOG.info("Starting the driver with {} threads and {} keys", threads, keys);
+         } else {
+            LOG.info("Starting the drive at fixed rate of {}/s and {} keys", rate, keys);
+         }
          Future<?> future = executor.submit(driver);
 
          long previousOps = 0;
@@ -106,7 +121,7 @@ public class Main implements Runnable {
             long windowOps = totalOps - previousOps;
             previousOps = totalOps;
 
-            LOG.info("[{}] ops={} | errors={} | ops/s={}", formatTime(elapsed), totalOps, errors, windowOps / 5);
+            LOG.info("[{}] ops={} | success={} | errors={} | ops/s={}", formatTime(elapsed), totalOps, totalOps - errors, errors, windowOps / 5);
          }
 
          if (elapsed(startTime)) {
@@ -134,6 +149,8 @@ public class Main implements Runnable {
    private RemoteCacheManager createCacheManager() {
       ConfigurationBuilder builder = new ConfigurationBuilder();
       builder.addServers(servers);
+//      builder.maxRetries(0);
+//      builder.clientIntelligence(ClientIntelligence.BASIC);
       builder.security().authentication()
             .username(user)
             .password(password);
@@ -159,7 +176,8 @@ public class Main implements Runnable {
                .withRequestRate(rate)
                .withKeyDistribution(createKeyDistribution())
                .withValueSize(valueSize)
-               .uniform();
+               .withReadRatio(readRatio)
+               .uniform(throttling);
       }
 
       return LoadDriver.builder()
@@ -167,6 +185,7 @@ public class Main implements Runnable {
             .withConcurrency(threads)
             .withKeyDistribution(createKeyDistribution())
             .withValueSize(valueSize)
+            .withReadRatio(readRatio)
             .throughput();
    }
 

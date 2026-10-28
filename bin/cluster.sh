@@ -183,4 +183,11 @@ cleanup() {
 
 trap cleanup EXIT
 
+docker compose -f "$COMPOSE_FILE" up -d ispn-1
+echo "Waiting for ispn-1 to start..."
+until docker logs ispn-1 2>&1 | grep -q 'ISPN080001'; do
+    sleep 1
+done
+echo "ispn-1 is ready — starting remaining nodes."
+
 docker compose -f "$COMPOSE_FILE" up
